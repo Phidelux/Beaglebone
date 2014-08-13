@@ -1,4 +1,6 @@
 #! /bin/sh
+set -euo pipefail
+IFS=$'\n\t'
 
 # Copyright (c) 2013 Andreas Wilhelm <info@avedo.net>
 # 
@@ -125,7 +127,7 @@ function yesno()
 
 function cleanUp() 
 {
-	rm -r /tmp/bone/
+	rm -rf /tmp/bone/
 }
 
 # Check if user has root privileges.
@@ -145,7 +147,7 @@ board=""
 mmc=0
 
 # Fetch command line options.
-while [[ "$1" ]]
+while [[ -n "${1+xxx}" ]]
 do
    case "$1" in
       --help|-h)
@@ -235,7 +237,7 @@ else
 fi
 
 # Create a temporary directory within /tmp.
-mkdir /tmp/bone
+mkdir -p /tmp/bone
 
 # Run this block only if an sd card is flashed.
 if [[ $mmc -ne 1 ]]; then
@@ -282,7 +284,7 @@ parted $device print
 wget http://archlinuxarm.org/os/omap/BeagleBone-bootloader.tar.gz --directory-prefix=/tmp/bone
 
 # ... create a new directory "boot", ...
-mkdir /tmp/bone/boot
+mkdir -p /tmp/bone/boot
 
 # ... mount this directory to the first partition, ...
 mount $part1 /tmp/bone/boot
@@ -297,7 +299,7 @@ umount /tmp/bone/boot
 wget http://archlinuxarm.org/os/ArchLinuxARM-am33x-latest.tar.gz --directory-prefix=/tmp/bone
 
 # ... create a new directory "root", ...
-mkdir /tmp/bone/root
+mkdir -p /tmp/bone/root
 
 # ... mount this directory to the second partition, ...
 mount $part2 /tmp/bone/root
