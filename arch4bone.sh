@@ -290,7 +290,7 @@ mkdir -p /tmp/bone/boot
 mount $part1 /tmp/bone/boot
 
 # ... extract the bootloader tarball here ...
-tar -xvf /tmp/bone/BeagleBone-bootloader.tar.gz -C /tmp/bone/boot
+tar -xvf /tmp/bone/BeagleBone-bootloader.tar.gz -C /tmp/bone/boot --no-same-owner
 
 # ... and unmount the partition.
 umount /tmp/bone/boot
