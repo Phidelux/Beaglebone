@@ -127,8 +127,11 @@ function yesno()
 
 function cleanUp() 
 {
+    echo "Cleaning up"
 	rm -rf /tmp/bone/
 }
+
+trap cleanUp EXIT
 
 # Check if user has root privileges.
 if [[ $EUID -ne $ROOT_UID ]]; then
@@ -309,9 +312,6 @@ tar -xf /tmp/bone/ArchLinuxARM-am33x-latest.tar.gz -C /tmp/bone/root
 
 # ... and unmount the partition.
 umount /tmp/bone/root
-
-# Do some clean up!
-cleanUp
 
 # Done! Print out some information to the user.
 echo "Done!"
