@@ -217,12 +217,10 @@ if ! yesno --default no "Are you sure you would like to wipe $device (default no
 fi
 
 # Unmount all partitions in /dev/sdX.
-for partition in $(parted -s $device print|awk '/^ / {print $1}')
+for partition in $(awk '/^'${device//\//\\\/}'/ {print $1}' /etc/mtab)
 do
-	if [[ $(mount | grep $partition) != "" ]]; then
-	   echo "Unmounting partition ${device}${partition} ..."
-	   umount "${device}${partition}"
-	fi
+   echo "Unmounting partition ${partition} ..."
+   umount "${partition}"
 done
 
 # Generate the names of first and second partition.
