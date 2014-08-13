@@ -133,11 +133,6 @@ if [[ $EUID -ne $ROOT_UID ]]; then
    error "This script must be run as root!"
 fi
 
-# Check if user is root and does not use sudoer privileges.
-if [[ "${SUDO_USER:-$(whoami)}" != "$ROOT_NAME" ]]; then
-   error "This script must be run as root, not as sudo user!"
-fi
-
 # Setup script vars.
 devices=$(cat /proc/partitions|awk '/^ / {print "/dev/"$4}')
 device=""
