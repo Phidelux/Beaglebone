@@ -226,9 +226,9 @@ do
 done
 
 # Generate the names of first and second partition.
-if [[ $mmc -eq 1 ]]; then
-   part1="/dev/mmcblk1p1"
-   part2="/dev/mmcblk1p2"
+if [[ ${device} == /dev/mmcblk* ]]; then
+   part1="${device}p1"
+   part2="${device}p2"
 else 
    part1="${device}1"
    part2="${device}2"
