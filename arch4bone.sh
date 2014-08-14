@@ -1,4 +1,6 @@
 #! /bin/sh
+set -euo pipefail
+IFS=$'\n\t'
 
 # Copyright (c) 2013 Andreas Wilhelm <info@avedo.net>
 # 
@@ -125,8 +127,11 @@ function yesno()
 
 function cleanUp() 
 {
-	rm -r /tmp/bone/
+    echo "Cleaning up"
+   rm -rf /tmp/bone/
 }
+
+trap cleanUp EXIT
 
 # Check if user has root privileges.
 if [[ $EUID -ne $ROOT_UID ]]; then
@@ -140,7 +145,7 @@ board=""
 mmc=0
 
 # Fetch command line options.
-while [[ "$1" ]]
+while [[ -n "${1+xxx}" ]]
 do
    case "$1" in
       --help|-h)
@@ -161,8 +166,8 @@ do
          
          if [[ ! -b $device ]]; then
             error "Device $device is not a block device!\n\n" \
-            	"\rFollowing devices are available:\n" \
-            	"\r$devices\n"
+               "\rFollowing devices are available:\n" \
+               "\r$devices\n"
          fi
          
          shift
@@ -179,9 +184,9 @@ do
          if [[ "$board" != "bone"  &&  "$board" != "black" ]]; then
             error "Invalid board name ($board)!\n\n$USAGE"
          fi
-      	
+         
          shift
-      	;;
+         ;;
       --mmc|-m)
          mmc=1
          shift
@@ -212,52 +217,50 @@ if ! yesno --default no "Are you sure you would like to wipe $device (default no
 fi
 
 # Unmount all partitions in /dev/sdX.
-for partition in $(parted -s $device print|awk '/^ / {print $1}')
+for partition in $(awk '/^'${device//\//\\\/}'/ {print $1}' /etc/mtab)
 do
-	if [[ $(mount | grep $partition) != "" ]]; then
-	   echo "Unmounting partition ${device}${partition} ..."
-	   umount "${device}${partition}"
-	fi
+   echo "Unmounting partition ${partition} ..."
+   umount "${partition}"
 done
 
 # Generate the names of first and second partition.
-if [[ $mmc -eq 1 ]]; then
-   part1="/dev/mmcblk1p1"
-   part2="/dev/mmcblk1p2"
+if [[ ${device} == /dev/mmcblk* ]]; then
+   part1="${device}p1"
+   part2="${device}p2"
 else 
    part1="${device}1"
    part2="${device}2"
 fi
 
 # Create a temporary directory within /tmp.
-mkdir /tmp/bone
+mkdir -p /tmp/bone
 
 # Run this block only if an sd card is flashed.
 if [[ $mmc -ne 1 ]]; then
-	# Remove each partition in /dev/sdX.
-	for partition in $(parted -s $device print|awk '/^ / {print $1}')
-	do
-		echo "Removing partition ${device}${partition} ..."
-		parted -s $device rm ${partition}
-	done
+   # Remove each partition in /dev/sdX.
+   for partition in $(parted -s $device print|awk '/^ / {print $1}')
+   do
+      echo "Removing partition ${device}${partition} ..."
+      parted -s $device rm ${partition}
+   done
 
-	# Find size of the entire /dev/sdX disk.
-	v_disk=$(parted -s $device print|awk '/^Disk/ {print $3}'|sed 's/[Mm][Bb]//')
+   # Find size of the entire /dev/sdX disk.
+   v_disk=$(parted -s $device print|awk '/^Disk/ {print $3}'|sed 's/[Mm][Bb]//')
 
-	# Important user output!
-	echo "Setting up boot partition $part1 ..."
+   # Important user output!
+   echo "Setting up boot partition $part1 ..."
 
-	# Create the first partition as a primary fat16 partition of 64 MB beginning at first sector ...
-	parted -s $device mkpart primary 0 64
+   # Create the first partition as a primary fat16 partition of 64 MB beginning at first sector ...
+   parted -s $device mkpart primary 0 64
 
-	# ... and enable the boot flag on this partition.
-	parted -s $device set 1 boot on
+   # ... and enable the boot flag on this partition.
+   parted -s $device set 1 boot on
 
-	# Important user output!
-	echo "Setting up root partition $part2 ..."
+   # Important user output!
+   echo "Setting up root partition $part2 ..."
 
-	# Create the second partition as a primary ext4 partition using the left space.
-	parted -s $device mkpart primary 64 ${v_disk}
+   # Create the second partition as a primary ext4 partition using the left space.
+   parted -s $device mkpart primary 64 ${v_disk}
 fi
 
 # Important user output!
@@ -277,13 +280,13 @@ parted $device print
 wget http://archlinuxarm.org/os/omap/BeagleBone-bootloader.tar.gz --directory-prefix=/tmp/bone
 
 # ... create a new directory "boot", ...
-mkdir /tmp/bone/boot
+mkdir -p /tmp/bone/boot
 
 # ... mount this directory to the first partition, ...
 mount $part1 /tmp/bone/boot
 
 # ... extract the bootloader tarball here ...
-tar -xvf /tmp/bone/BeagleBone-bootloader.tar.gz -C /tmp/bone/boot
+tar -xvf /tmp/bone/BeagleBone-bootloader.tar.gz -C /tmp/bone/boot --no-same-owner
 
 # ... and unmount the partition.
 umount /tmp/bone/boot
@@ -292,7 +295,7 @@ umount /tmp/bone/boot
 wget http://archlinuxarm.org/os/ArchLinuxARM-am33x-latest.tar.gz --directory-prefix=/tmp/bone
 
 # ... create a new directory "root", ...
-mkdir /tmp/bone/root
+mkdir -p /tmp/bone/root
 
 # ... mount this directory to the second partition, ...
 mount $part2 /tmp/bone/root
@@ -302,9 +305,6 @@ tar -xf /tmp/bone/ArchLinuxARM-am33x-latest.tar.gz -C /tmp/bone/root
 
 # ... and unmount the partition.
 umount /tmp/bone/root
-
-# Do some clean up!
-cleanUp
 
 # Done! Print out some information to the user.
 echo "Done!"
