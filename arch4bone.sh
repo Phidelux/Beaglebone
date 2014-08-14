@@ -230,8 +230,8 @@ if [[ $mmc -eq 1 ]]; then
    part1="/dev/mmcblk1p1"
    part2="/dev/mmcblk1p2"
 else 
-   part1="${device}p1"
-   part2="${device}p2"
+   part1="${device}1"
+   part2="${device}2"
 fi
 
 # Create a temporary directory within /tmp.
