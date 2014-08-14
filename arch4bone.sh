@@ -228,8 +228,8 @@ if [[ ${device} == /dev/mmcblk* ]]; then
    part1="${device}p1"
    part2="${device}p2"
 else 
-   part1="${device}p1"
-   part2="${device}p2"
+   part1="${device}1"
+   part2="${device}2"
 fi
 
 # Create a temporary directory within /tmp.
