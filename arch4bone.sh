@@ -268,10 +268,10 @@ echo "Creating fat16 boot partition filesystem ..."
 echo "Creating ext4 root partition filesystem ..."
 
 # Create the fat16 filesystem at the first partition ...
-mkfs.vfat -F 16 $part1
+mkfs.vfat -n "BOOT" -F 16 $part1
 
 # ... and the ext4 filesystem at the second partition.
-mkfs.ext4 $part2
+mkfs.ext4 -L "ROOT" $part2
 
 # Print out the new partition table.
 parted $device print
