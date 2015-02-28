@@ -301,7 +301,7 @@ mkdir -p /tmp/bone/root
 mount $part2 /tmp/bone/root
 
 # ... extract the root filesystem tarball here ...
-tar -xf /tmp/bone/ArchLinuxARM-am33x-latest.tar.gz -C /tmp/bone/root
+bsdtar -xpf /tmp/bone/ArchLinuxARM-am33x-latest.tar.gz -C /tmp/bone/root
 
 # ... and unmount the partition.
 umount /tmp/bone/root
